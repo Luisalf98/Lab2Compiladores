@@ -5,10 +5,12 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import javax.swing.JLabel;
+import javax.swing.table.DefaultTableModel;
 
 public class ASD {
 
@@ -26,6 +28,10 @@ public class ASD {
     private final HashMap<Character, HashSet<Character>> followingSets;
 
     private HashMap<Character, N> followingSetsDependencies;
+    
+    private HashMap<Character, Integer> tMTableIndexes;
+    private HashMap<Character, Integer> nMTableIndexes;
+    private String[][] MTable;
 
     public ASD(String fileUrl) throws IOException {
         this.NI = new ArrayList<>();
@@ -45,7 +51,35 @@ public class ASD {
 
         firstSets();
         followingSets();
+        
+        generateMTable();
     }
+
+    public char getS() {
+        return S;
+    }
+
+    public ArrayList<Character> getNI() {
+        return NI;
+    }
+
+    public ArrayList<Character> getT() {
+        return T;
+    }
+
+    public HashMap<Character, ArrayList<String>> getPI() {
+        return PI;
+    }
+
+    public ArrayList<Character> getNF() {
+        return NF;
+    }
+
+    public HashMap<Character, ArrayList<String>> getPF() {
+        return PF;
+    }
+    
+    
 
     public HashMap<Character, HashSet<Character>> getFirstSets() {
         return firstSets;
@@ -280,6 +314,73 @@ public class ASD {
             }
         }
         return null;
+    }
+    
+    private void generateMTable(){
+        tMTableIndexes = new HashMap<>();
+        nMTableIndexes = new HashMap<>();
+        MTable = new String[NF.size()][T.size()+1];
+        
+        int i = 0;
+        for(Character c : T){
+            tMTableIndexes.put(c, i);
+            i++;
+        }
+        tMTableIndexes.put('$', i);
+        
+        i=0;
+        for(Character c : NF){
+            nMTableIndexes.put(c, i);
+            for(String s : PF.get(c)){
+                String value = c+" -> "+s;
+                
+                HashSet<Character> aux = new HashSet<>();
+                int index = 0;
+                do {
+                    aux.remove(VOID_CHAR);
+                    aux.addAll(firstSets(s.charAt(index)));
+                    index++;
+                } while (index < s.length() && aux.contains(VOID_CHAR));
+                if (aux.contains(VOID_CHAR)) {
+                    aux.remove(VOID_CHAR);
+                    for(Character a : followingSets.get(c)){
+                        MTable[nMTableIndexes.get(c)][tMTableIndexes.get(a)] = (MTable[nMTableIndexes.get(c)][tMTableIndexes.get(a)]==null?"":MTable[nMTableIndexes.get(c)][tMTableIndexes.get(a)])+value;
+                    }
+                }
+                for(Character t : aux){
+                    MTable[nMTableIndexes.get(c)][tMTableIndexes.get(t)] = (MTable[nMTableIndexes.get(c)][tMTableIndexes.get(t)]==null?"":MTable[nMTableIndexes.get(c)][tMTableIndexes.get(t)])+value;
+                }
+                
+            }
+            i++;
+        }
+        
+        for (int k = 0; k < MTable.length; k++) {
+            System.out.println(Arrays.toString(MTable[k]));
+        }
+        ;
+    }
+    
+    public void showMTable(DefaultTableModel model){
+        String[] id = new String[T.size()+2];
+        String[][] data = new String[NF.size()][T.size()+2];
+        
+        id[0] = "N\\T";
+        int i=1, j=0;
+        for(Character t : T){
+            id[i] = String.valueOf(t);
+            i++;
+        }
+        id[i] = "$";
+        
+        for(i = 0; i<NF.size(); i++){
+            data[i][0] = String.valueOf(NF.get(i));
+            for(j = 0; j<T.size()+1; j++){
+                data[i][j+1] = MTable[i][j];
+            }
+        }
+        
+        model.setDataVector(data, id);
     }
 
     public void showFirstOrFollowing(JLabel label, HashMap<Character, HashSet<Character>> fof, String arg) {

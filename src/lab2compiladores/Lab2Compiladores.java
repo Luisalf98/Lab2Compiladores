@@ -23,8 +23,10 @@ import javax.swing.JLabel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.JPanel;
+import javax.swing.JTable;
 import javax.swing.border.LineBorder;
 import javax.swing.border.TitledBorder;
+import javax.swing.table.DefaultTableModel;
 
 public class Lab2Compiladores {
     
@@ -34,7 +36,12 @@ public class Lab2Compiladores {
     private final Box tablesVBox;
     private final JPanel gridFormPanel;
     private final JPanel mTablePanel;
+    private final JTable mTable;
+    private final JScrollPane mtableScrollPane;
+    private final DefaultTableModel mTableModel;
     private final JPanel sioTablePanel;
+    private final JTable sioTable;
+    private final DefaultTableModel sioTableModel;
     private final JPanel inputPanel;
     private final Box inputPanelBox;
     private final JPanel transformedGrammarPanel;
@@ -67,10 +74,18 @@ public class Lab2Compiladores {
         tablesVBox = new Box(BoxLayout.Y_AXIS);
         mTablePanel = new JPanel();
         mTablePanel.setBorder(new TitledBorder("Tabla M"));
+        mTableModel = new DefaultTableModel();
+        mTable = new JTable(mTableModel);
+        mTable.setEnabled(false);
+        mtableScrollPane = new JScrollPane();
+        mtableScrollPane.setViewportView(mTable);
+        mTablePanel.add(mtableScrollPane);
         
         sioTablePanel = new JPanel();
         sioTablePanel.setBorder(new TitledBorder("Tabla Pila-Entrada-Salida"));
-        
+        sioTableModel = new DefaultTableModel();
+        sioTable = new JTable();
+        sioTable.setEnabled(false);
         
         tablesVBox.add(mTablePanel);
         tablesVBox.add(sioTablePanel);
@@ -157,6 +172,7 @@ public class Lab2Compiladores {
                     asd.showNewGrammar(transformedGrammarLabel);
                     asd.showFirstOrFollowing(firstSetsLabel, asd.getFirstSets(), "PRIMERO");
                     asd.showFirstOrFollowing(followingSetsLabel, asd.getFollowingSets(), "SIGUIENTE");
+                    asd.showMTable(mTableModel);
                 } catch (IOException ex) {
                     Logger.getLogger(Lab2Compiladores.class.getName()).log(Level.SEVERE, null, ex);
                 }
