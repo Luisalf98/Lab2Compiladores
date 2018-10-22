@@ -1,5 +1,8 @@
 package lab2compiladores;
 
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.Graphics;
 import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -10,11 +13,13 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import javax.swing.JLabel;
-import javax.swing.table.DefaultTableModel;
+import javax.swing.JPanel;
+import javax.swing.border.LineBorder;
 
 public class ASD {
 
     public static final char VOID_CHAR = '&';
+    public static final String ARROW = "&rarr;";
 
     private char S;
     private final ArrayList<Character> NI;
@@ -107,7 +112,7 @@ public class ASD {
             PF.putIfAbsent(v[0].charAt(0), new ArrayList<>());
             PF.get(v[0].charAt(0)).add(v[1]);
             for (int i = 0; i < v[1].length(); i++) {
-                if ('A' > v[1].charAt(i) || 'Z' < v[1].charAt(i)) {
+                if (!T.contains(v[1].charAt(i)) && ('A' > v[1].charAt(i) || 'Z' < v[1].charAt(i))) {
                     T.add(v[1].charAt(i));
                 }
             }
@@ -233,7 +238,11 @@ public class ASD {
             boolean sw = !p.contains(VOID_CHAR);
             int index = 0;
             do {
-                aux = firstSets(s.charAt(index));
+                if(c==s.charAt(index)){
+                    aux = new HashSet<>();
+                }else{
+                    aux = firstSets(s.charAt(index));
+                }
                 p.addAll(aux);
                 index++;
             } while (index < s.length() && aux.contains(VOID_CHAR));
@@ -252,12 +261,8 @@ public class ASD {
         });
         followingSets.get(S).add('$');
 
-        HashSet<Character> visited = new HashSet<>();
         NF.forEach(c -> {
-            if (!visited.contains(c)) {
-                followingSets(c, visited);
-                visited.add(c);
-            }
+            followingSets(c);
         });
 
         LinkedList<Character> stack = new LinkedList<>();
@@ -280,7 +285,7 @@ public class ASD {
 
     }
 
-    private void followingSets(Character c, HashSet<Character> visited) {
+    private void followingSets(Character c) {
         for (String s : PF.get(c)) {
             for (int i = 0; i < s.length(); i++) {
                 if ('A' <= s.charAt(i) && s.charAt(i) <= 'Z') {
@@ -332,7 +337,7 @@ public class ASD {
         for(Character c : NF){
             nMTableIndexes.put(c, i);
             for(String s : PF.get(c)){
-                String value = c+" -> "+s;
+                String value = c+" &rarr; "+s;
                 
                 HashSet<Character> aux = new HashSet<>();
                 int index = 0;
@@ -355,32 +360,202 @@ public class ASD {
             i++;
         }
         
-        for (int k = 0; k < MTable.length; k++) {
-            System.out.println(Arrays.toString(MTable[k]));
-        }
-        ;
     }
     
-    public void showMTable(DefaultTableModel model){
-        String[] id = new String[T.size()+2];
-        String[][] data = new String[NF.size()][T.size()+2];
+    public void showMTable(JPanel panel, JLabel[][] table, int rows, int cols){
         
-        id[0] = "N\\T";
+        Font font = new Font(Font.SANS_SERIF, Font.BOLD, 20);
+        String html = "<html><center>%s</center></html>";
+        table[0][0] = new JLabel(String.format(html,"N\\T")){
+            {
+                setFont(font);
+                setBorder(LineBorder.createBlackLineBorder());
+                setHorizontalAlignment(JLabel.CENTER);
+            }
+            
+            @Override
+            public void paint(Graphics g){
+                g.setColor(Color.GRAY);
+                g.fillRect(getX(), getY(), getWidth(), getHeight());
+                super.paint(g);
+                
+            }
+        };
+        panel.add(table[0][0]);
+        
         int i=1, j=0;
         for(Character t : T){
-            id[i] = String.valueOf(t);
+            table[0][i] = new JLabel(String.format(html, String.valueOf(t))){
+                {
+                    setFont(font);
+                    setBorder(LineBorder.createBlackLineBorder());
+                    setHorizontalAlignment(JLabel.CENTER);
+                }
+
+                @Override
+                public void paint(Graphics g){
+                    g.setColor(Color.GRAY);
+                    g.fillRect(getX(), getY(), getWidth(), getHeight());
+                    super.paint(g);
+                }
+            };
+            panel.add(table[0][i]);
             i++;
         }
-        id[i] = "$";
+        table[0][i] = new JLabel(String.format(html, "$")){
+            {
+                setFont(font);
+                setBorder(LineBorder.createBlackLineBorder());
+                setHorizontalAlignment(JLabel.CENTER);
+            }
+
+            @Override
+            public void paint(Graphics g){
+                g.setColor(Color.GRAY);
+                g.fillRect(getX(), getY(), getWidth(), getHeight());
+                super.paint(g);
+            }
+        };
+        panel.add(table[0][i]);
         
-        for(i = 0; i<NF.size(); i++){
-            data[i][0] = String.valueOf(NF.get(i));
-            for(j = 0; j<T.size()+1; j++){
-                data[i][j+1] = MTable[i][j];
+        for(i = 1; i<NF.size()+1; i++){
+            table[i][0] = new JLabel(String.format(html, String.valueOf(NF.get(i-1)))){
+                {
+                    setFont(font);
+                    setBorder(LineBorder.createBlackLineBorder());
+                    setHorizontalAlignment(JLabel.CENTER);
+                }
+
+                @Override
+                public void paint(Graphics g){
+                    g.setColor(Color.GRAY);
+                    g.fillRect(getX(), getY(), getWidth(), getHeight());
+                    super.paint(g);
+                }
+            };
+            panel.add(table[i][0]);
+            for(j = 1; j<T.size()+2; j++){
+                table[i][j] = new JLabel(String.format(html, MTable[i-1][j-1]==null?"":MTable[i-1][j-1])){
+                    {
+                        setBorder(LineBorder.createBlackLineBorder());
+                        setHorizontalAlignment(JLabel.CENTER);
+                    }
+                };
+                panel.add(table[i][j]);
             }
         }
         
-        model.setDataVector(data, id);
+    }
+    
+    public void analizeString(String s, JPanel panel, ArrayList<JLabel> table){
+        Font font = new Font(Font.SANS_SERIF, Font.BOLD, 20);
+        String html = "<html><center>%s</center></html>";
+        JLabel label = new JLabel(String.format(html,"Pila")){
+            {
+                setFont(font);
+                setBorder(LineBorder.createBlackLineBorder());
+                setHorizontalAlignment(JLabel.CENTER);
+            }
+        };
+        panel.add(label);
+        label = new JLabel(String.format(html,"Entrada")){
+            {
+                setFont(font);
+                setBorder(LineBorder.createBlackLineBorder());
+                setHorizontalAlignment(JLabel.CENTER);
+            }
+        };
+        panel.add(label);
+        label = new JLabel(String.format(html,"Salida")){
+            {
+                setFont(font);
+                setBorder(LineBorder.createBlackLineBorder());
+                setHorizontalAlignment(JLabel.CENTER);
+            }
+        };
+        panel.add(label);
+        
+        LinkedList<Character> stack = new LinkedList<Character>(){
+            {
+                push('$');
+                push(S);
+            }
+        };
+        s = s+"$";
+        int index = 0;
+        while(stack.size()>0){
+            StringBuilder sb = new StringBuilder();
+            for(int i=stack.size()-1; i>=0; i--){
+                sb.append(stack.get(i));
+            }
+            label = new JLabel(String.format(html, sb.toString())){
+                {
+                    setBorder(LineBorder.createBlackLineBorder());
+                    setHorizontalAlignment(JLabel.CENTER);
+                }
+            };
+            panel.add(label);
+            
+            label = new JLabel(String.format(html, s.substring(index))){
+                {
+                    setBorder(LineBorder.createBlackLineBorder());
+                    setHorizontalAlignment(JLabel.CENTER);
+                }
+            };
+            panel.add(label);
+            
+            char x = stack.peek();
+            char a = s.charAt(index);
+            if((x<'A' || x>'Z') || x=='$'){
+                if(x==a){
+                    stack.pop();
+                    index++;
+                    String msg = x=='$'?"ACEPTAR!":"DESPLAZAR";
+                    label = new JLabel(String.format(html, msg)){
+                        {
+                            setBorder(LineBorder.createBlackLineBorder());
+                            setHorizontalAlignment(JLabel.CENTER);
+                        }
+                    };
+                    panel.add(label);
+                }else{
+                    label = new JLabel(String.format(html, "ERROR")){
+                        {
+                            setBorder(LineBorder.createBlackLineBorder());
+                            setHorizontalAlignment(JLabel.CENTER);
+                        }
+                    };
+                    panel.add(label);
+                    break;
+                }
+            }else{
+                if(nMTableIndexes.get(x)!=null && tMTableIndexes.get(a)!=null && MTable[nMTableIndexes.get(x)][tMTableIndexes.get(a)]!=null){
+                    stack.pop();
+                    String prod = MTable[nMTableIndexes.get(x)][tMTableIndexes.get(a)].split(" "+ARROW+" ")[1];
+                    for(int i = prod.length()-1; i>=0; i--){
+                        if(prod.charAt(i)==VOID_CHAR)continue;
+                        stack.push(prod.charAt(i));
+                    }
+                    label = new JLabel(String.format(html, x+" "+ARROW+" "+prod)){
+                        {
+                            setBorder(LineBorder.createBlackLineBorder());
+                            setHorizontalAlignment(JLabel.CENTER);
+                        }
+                    };
+                    panel.add(label);
+                }else{
+                    label = new JLabel(String.format(html, "ERROR")){
+                        {
+                            setBorder(LineBorder.createBlackLineBorder());
+                            setHorizontalAlignment(JLabel.CENTER);
+                        }
+                    };
+                    panel.add(label);
+                    break;
+                }
+            }
+        }
+        
     }
 
     public void showFirstOrFollowing(JLabel label, HashMap<Character, HashSet<Character>> fof, String arg) {

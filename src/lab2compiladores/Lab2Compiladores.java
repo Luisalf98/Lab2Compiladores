@@ -10,6 +10,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JFrame;
@@ -23,10 +24,8 @@ import javax.swing.JLabel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.JPanel;
-import javax.swing.JTable;
 import javax.swing.border.LineBorder;
 import javax.swing.border.TitledBorder;
-import javax.swing.table.DefaultTableModel;
 
 public class Lab2Compiladores {
     
@@ -36,19 +35,28 @@ public class Lab2Compiladores {
     private final Box tablesVBox;
     private final JPanel gridFormPanel;
     private final JPanel mTablePanel;
-    private final JTable mTable;
-    private final JScrollPane mtableScrollPane;
-    private final DefaultTableModel mTableModel;
+    private final JPanel mTablePanelFlow;
+    private final JPanel mTableGridPanel;
+    private final JScrollPane mTableScrollPane;
+    private JLabel[][] mTable;
     private final JPanel sioTablePanel;
-    private final JTable sioTable;
-    private final DefaultTableModel sioTableModel;
+    private final JPanel sioTablePanelFlow;
+    private JPanel sioTableGridPanel;
+    private final JScrollPane sioTableScrollPane;
+    private ArrayList<JLabel> sioTable;
     private final JPanel inputPanel;
     private final Box inputPanelBox;
     private final JPanel transformedGrammarPanel;
+    private final JPanel transformedGrammarPanelFlow;
+    private final JScrollPane transformedGrammarScrollPane;
     private final JLabel transformedGrammarLabel;
     private final JPanel firstSetsPanel;
+    private final JPanel firstSetsPanelFlow;
+    private final JScrollPane firstSetsScrollPane;
     private final JLabel firstSetsLabel;
     private final JPanel followingSetsPanel;
+    private final JPanel followingSetsPanelFlow;
+    private final JScrollPane followingSetsScrollPane;
     private final JLabel followingSetsLabel;
     private final JFileChooser jFileChooser;
     private final JDialog fileChooserDialog;
@@ -72,20 +80,25 @@ public class Lab2Compiladores {
         
         hBox = new Box(BoxLayout.X_AXIS);
         tablesVBox = new Box(BoxLayout.Y_AXIS);
-        mTablePanel = new JPanel();
+        mTablePanelFlow = new JPanel();
+        mTablePanel = new JPanel(new BorderLayout());
         mTablePanel.setBorder(new TitledBorder("Tabla M"));
-        mTableModel = new DefaultTableModel();
-        mTable = new JTable(mTableModel);
-        mTable.setEnabled(false);
-        mtableScrollPane = new JScrollPane();
-        mtableScrollPane.setViewportView(mTable);
-        mTablePanel.add(mtableScrollPane);
+        mTableGridPanel = new JPanel();
+        mTableScrollPane = new JScrollPane();
+        mTableScrollPane.setPreferredSize(new Dimension(250,200));
+        mTableScrollPane.setViewportView(mTablePanelFlow);
+        mTablePanelFlow.add(mTableGridPanel);
+        mTablePanel.add(mTableScrollPane);
         
-        sioTablePanel = new JPanel();
+        sioTablePanelFlow = new JPanel();
+        sioTablePanel = new JPanel(new BorderLayout());
         sioTablePanel.setBorder(new TitledBorder("Tabla Pila-Entrada-Salida"));
-        sioTableModel = new DefaultTableModel();
-        sioTable = new JTable();
-        sioTable.setEnabled(false);
+        sioTableGridPanel = new JPanel(new GridLayout(0,3));
+        sioTableScrollPane = new JScrollPane();
+        sioTableScrollPane.setViewportView(sioTablePanelFlow);
+        sioTableScrollPane.setPreferredSize(new Dimension(250,400));
+        sioTablePanel.add(sioTableScrollPane);
+        sioTablePanelFlow.add(sioTableGridPanel);
         
         tablesVBox.add(mTablePanel);
         tablesVBox.add(sioTablePanel);
@@ -97,20 +110,29 @@ public class Lab2Compiladores {
         inputPanelBox = new Box(BoxLayout.Y_AXIS);
         inputPanel.setBorder(new TitledBorder("Entrada de Datos"));
         
-        transformedGrammarPanel = new JPanel();
+        transformedGrammarPanel = new JPanel(new BorderLayout());
+        transformedGrammarPanelFlow = new JPanel();
+        transformedGrammarScrollPane = new JScrollPane(transformedGrammarPanelFlow);
         transformedGrammarPanel.setBorder(new TitledBorder("Gramática sin recursividad y factorizada"));
         transformedGrammarLabel = new JLabel("");
-        transformedGrammarPanel.add(transformedGrammarLabel);
+        transformedGrammarPanelFlow.add(transformedGrammarLabel);
+        transformedGrammarPanel.add(transformedGrammarScrollPane);
         
-        firstSetsPanel = new JPanel();
+        firstSetsPanel = new JPanel(new BorderLayout());
+        firstSetsPanelFlow = new JPanel();
         firstSetsPanel.setBorder(new TitledBorder("Conjuntos PRIMERO"));
         firstSetsLabel = new JLabel("");
-        firstSetsPanel.add(firstSetsLabel);
+        firstSetsPanelFlow.add(firstSetsLabel);
+        firstSetsScrollPane = new JScrollPane(firstSetsPanelFlow);
+        firstSetsPanel.add(firstSetsScrollPane);
         
-        followingSetsPanel = new JPanel();
+        followingSetsPanel = new JPanel(new BorderLayout());
+        followingSetsPanelFlow = new JPanel();
         followingSetsPanel.setBorder(new TitledBorder("Conjuntos SIGUIENTE"));
         followingSetsLabel = new JLabel("");
-        followingSetsPanel.add(followingSetsLabel);
+        followingSetsPanelFlow.add(followingSetsLabel);
+        followingSetsScrollPane = new JScrollPane(followingSetsPanelFlow);
+        followingSetsPanel.add(followingSetsScrollPane);
         
         gridFormPanel.add(inputPanel);
         gridFormPanel.add(firstSetsPanel);
@@ -172,7 +194,16 @@ public class Lab2Compiladores {
                     asd.showNewGrammar(transformedGrammarLabel);
                     asd.showFirstOrFollowing(firstSetsLabel, asd.getFirstSets(), "PRIMERO");
                     asd.showFirstOrFollowing(followingSetsLabel, asd.getFollowingSets(), "SIGUIENTE");
-                    asd.showMTable(mTableModel);
+                    int rows = asd.getNF().size()+1;
+                    int cols = asd.getT().size()+2;
+                    mTable = new JLabel[rows][cols];
+                    mTableGridPanel.removeAll();
+                    sioTableGridPanel.removeAll();
+                    mTableGridPanel.setLayout(new GridLayout(rows, cols));
+                    asd.showMTable(mTableGridPanel, mTable, rows, cols);
+                    
+                    jFrame.repaint();
+                    jFrame.validate();
                 } catch (IOException ex) {
                     Logger.getLogger(Lab2Compiladores.class.getName()).log(Level.SEVERE, null, ex);
                 }
@@ -181,6 +212,17 @@ public class Lab2Compiladores {
         
         testString = new JTextField("", 20);
         analizeString = new JButton("Analizar");
+        analizeString.addMouseListener(new MouseAdapter(){
+            @Override
+            public void mouseClicked(MouseEvent e){
+                sioTableGridPanel.removeAll();
+                asd.analizeString(testString.getText(), sioTableGridPanel, sioTable);
+                testString.setText("");
+                
+                jFrame.validate();
+                jFrame.repaint();
+            }
+        });
         
         jp2.add(compile);
         jp3.add(testString);
